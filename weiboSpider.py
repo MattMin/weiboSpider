@@ -9,6 +9,7 @@ import traceback
 from datetime import datetime
 from datetime import timedelta
 from lxml import etree
+import xlwt
 
 
 class Weibo:
@@ -313,10 +314,10 @@ class Weibo:
                         )
                 result = result + text
             file_dir = os.path.split(os.path.realpath(__file__))[
-                0] + os.sep + "weibo"
+                           0] + os.sep + "weibo"
             if not os.path.isdir(file_dir):
                 os.mkdir(file_dir)
-            file_path = file_dir + os.sep + "%d" % self.user_id + ".txt"
+            file_path = file_dir + os.sep + self.username + ".txt"
             f = open(file_path, "wb")
             f.write(result.encode(sys.stdout.encoding))
             f.close()
@@ -326,13 +327,57 @@ class Weibo:
             print("Error: ", e)
             traceback.print_exc()
 
+    def write_excel(self):
+        try:
+            wbk = xlwt.Workbook()
+            sheet = wbk.add_sheet('sheet1')
+            sheet.write(0, 0, u"id")
+            sheet.write(0, 1, u"微博内容") #第0行第1列写入内容
+            sheet.write(0, 2, u"发布时间")
+            sheet.write(0, 3, u"点赞数")
+            sheet.write(0, 4, u"转发数")
+            sheet.write(0, 5, u"评论数")
+            sheet.write(0, 6, u"发布工具")
+            sheet.write(0, 7, u"微博位置")
+            for i in range(1, self.weibo_num2 + 1):
+                sheet.write(i, 0, i)
+                sheet.write(i, 1, self.weibo_content[i - 1]) #第0行第1列写入内容
+                sheet.write(i, 2, self.publish_time[i - 1])
+                sheet.write(i, 3, str(self.up_num[i - 1]))
+                sheet.write(i, 4, str(self.retweet_num[i - 1]))
+                sheet.write(i, 5, str(self.comment_num[i - 1]))
+                sheet.write(i, 6, self.publish_tool[i - 1])
+                sheet.write(i, 7, self.weibo_place[i - 1])
+                # text = (str(i) + ":" + self.weibo_content[i - 1] + "\n" +
+                #         u"微博位置: " + self.weibo_place[i - 1] + "\n" +
+                #         u"发布时间: " + self.publish_time[i - 1] + "\n" +
+                #         u"点赞数: " + str(self.up_num[i - 1]) +
+                #         u"   转发数: " + str(self.retweet_num[i - 1]) +
+                #         u"   评论数: " + str(self.comment_num[i - 1]) + "\n" +
+                #         u"发布工具: " + self.publish_tool[i - 1] + "\n\n"
+                #         )
+            file_dir = os.path.split(os.path.realpath(__file__))[
+                           0] + os.sep + "weibo"
+            if not os.path.isdir(file_dir):
+                os.mkdir(file_dir)
+            file_path = file_dir + os.sep + self.username + ".xls"
+            wbk.save(file_path)
+            print(u"微博写入文件完毕，保存路径:")
+            print(file_path)
+        except Exception as e:
+            print("Error: ", e)
+            traceback.print_exc()
+
     # 运行爬虫
-    def start(self):
+    def start(self, is_excel):
         try:
             self.get_username()
             self.get_user_info()
             self.get_weibo_info()
-            self.write_txt()
+            if is_excel:
+                self.write_excel()
+            else:
+                self.write_txt()
             print(u"信息抓取完毕")
             print(
                 "===========================================================================")
@@ -343,10 +388,10 @@ class Weibo:
 def main():
     try:
         # 使用实例,输入一个用户id，所有信息都会存储在wb实例中
-        user_id = 1476938315  # 可以改成任意合法的用户id（爬虫的微博id除外）
+        user_id = 5024820876  # 可以改成任意合法的用户id（爬虫的微博id除外）
         filter = 1  # 值为0表示爬取全部微博（原创微博+转发微博），值为1表示只爬取原创微博
         wb = Weibo(user_id, filter)  # 调用Weibo类，创建微博实例wb
-        wb.start()  # 爬取微博信息
+        wb.start(1)  # 爬取微博信息 1输出excel 0输出text
         print(u"用户名: " + wb.username)
         print(u"全部微博数: " + str(wb.weibo_num))
         print(u"关注数: " + str(wb.following))

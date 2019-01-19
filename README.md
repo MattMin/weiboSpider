@@ -44,7 +44,7 @@ $ python weibospider.py
 user_id = 1669879400
 filter = 1
 wb = Weibo(user_id,filter) #调用Weibo类，创建微博实例wb
-wb.start()  #爬取微博信息
+wb.start(1)  #爬取微博信息 1输出excel 0输出text
 ```
 user_id可以改成任意合法的用户id（爬虫的微博id除外）；filter默认值为0，表示爬取所有微博信息（转发微博+原创微博），为1表示只爬取用户的所有原创微博；wb是Weibo类的一个实例，也可以是其它名字，只要符合python的命名规范即可；通过执行wb.start() 完成了微博的爬取工作。在上述代码执行后，我们可以得到很多信息：<br>
 **wb.username**：用户名；<br>
