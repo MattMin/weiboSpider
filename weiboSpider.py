@@ -232,6 +232,7 @@ class Weibo:
                 page_num = (int)(selector.xpath(
                     "//input[@name='mp']")[0].attrib["value"])
             pattern = r"\d+\.?\d*"
+            is_break = False
             for page in range(1, page_num + 1):
                 url2 = "https://weibo.cn/u/%d?filter=%d&page=%d" % (
                     self.user_id, self.filter, page)
@@ -239,6 +240,8 @@ class Weibo:
                 selector2 = etree.HTML(html2)
                 info = selector2.xpath("//div[@class='c']")
                 is_empty = info[0].xpath("div/span[@class='ctt']")
+                if is_break:
+                    break
                 if is_empty:
                     for i in range(0, len(info) - 2):
 
@@ -274,10 +277,15 @@ class Weibo:
                         comment_num = int(guid[2])
                         self.comment_num.append(comment_num)
                         print(u"评论数: " + str(comment_num))
+                        print("获取时间：" + str(datetime.now()))
                         print(
                             "===========================================================================")
 
                         self.weibo_num2 += 1
+                        publish_time_ = self.publish_time[-1]
+                        if publish_time_ < '2019-01-19 00:00':
+                            is_break = True
+                            break
 
             if not self.filter:
                 print(u"共" + str(self.weibo_num2) + u"条微博")
@@ -387,8 +395,9 @@ class Weibo:
 
 def main():
     try:
+        start = datetime.now()
         # 使用实例,输入一个用户id，所有信息都会存储在wb实例中
-        user_id = 5024820876  # 可以改成任意合法的用户id（爬虫的微博id除外）
+        user_id = 6004281123  # 可以改成任意合法的用户id（爬虫的微博id除外）
         filter = 1  # 值为0表示爬取全部微博（原创微博+转发微博），值为1表示只爬取原创微博
         wb = Weibo(user_id, filter)  # 调用Weibo类，创建微博实例wb
         wb.start(1)  # 爬取微博信息 1输出excel 0输出text
@@ -404,6 +413,8 @@ def main():
             print(u"最新/置顶 微博获得转发数: " + str(wb.retweet_num[0]))
             print(u"最新/置顶 微博获得评论数: " + str(wb.comment_num[0]))
             print(u"最新/置顶 微博发布工具: " + wb.publish_tool[0])
+        print("共耗时: " + str(datetime.now() - start))
+
     except Exception as e:
         print("Error: ", e)
         traceback.print_exc()
