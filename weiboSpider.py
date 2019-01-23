@@ -220,7 +220,7 @@ class Weibo:
             traceback.print_exc()
 
     # 获取用户微博信息
-    def get_weibo_info(self):
+    def get_weibo_info(self, start_date_str):
         try:
             url = "https://weibo.cn/u/%d?filter=%d&page=1" % (
                 self.user_id, self.filter)
@@ -278,14 +278,15 @@ class Weibo:
                         self.comment_num.append(comment_num)
                         print(u"评论数: " + str(comment_num))
                         print("获取时间：" + str(datetime.now()))
+                        print("当前获取第" + str(self.weibo_num2) + "条数据进度: " + str(round(self.weibo_num2/self.weibo_num * 100, 4)) + "%")
                         print(
                             "===========================================================================")
-
                         self.weibo_num2 += 1
-                        publish_time_ = self.publish_time[-1]
-                        if publish_time_ < '2019-01-19 00:00':
-                            is_break = True
-                            break
+                        if start_date_str:
+                            publish_time_ = self.publish_time[-1]
+                            if datetime.strptime(publish_time_.strip(), "%Y-%m-%d %H:%M") < datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S"):
+                                is_break = True
+                                break
 
             if not self.filter:
                 print(u"共" + str(self.weibo_num2) + u"条微博")
@@ -377,11 +378,16 @@ class Weibo:
             traceback.print_exc()
 
     # 运行爬虫
-    def start(self, is_excel):
+    def start(self, is_excel, start_date_str):
+        """
+            启动爬虫
+        :param is_excel: 1输出excel, 0输出text
+        :param start_date_str: 开始日期, False:不限制日期
+        """
         try:
             self.get_username()
             self.get_user_info()
-            self.get_weibo_info()
+            self.get_weibo_info(start_date_str)
             if is_excel:
                 self.write_excel()
             else:
@@ -394,13 +400,14 @@ class Weibo:
 
 
 def main():
+    # 6004281123 梨视频
     try:
         start = datetime.now()
         # 使用实例,输入一个用户id，所有信息都会存储在wb实例中
         user_id = 6004281123  # 可以改成任意合法的用户id（爬虫的微博id除外）
-        filter = 1  # 值为0表示爬取全部微博（原创微博+转发微博），值为1表示只爬取原创微博
+        filter = 0  # 值为0表示爬取全部微博（原创微博+转发微博），值为1表示只爬取原创微博
         wb = Weibo(user_id, filter)  # 调用Weibo类，创建微博实例wb
-        wb.start(1)  # 爬取微博信息 1输出excel 0输出text
+        wb.start(1, "2017-01-01 00:00:00")  # 爬取微博信息 1输出excel 0输出text
         print(u"用户名: " + wb.username)
         print(u"全部微博数: " + str(wb.weibo_num))
         print(u"关注数: " + str(wb.following))
